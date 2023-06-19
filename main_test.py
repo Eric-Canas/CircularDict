@@ -45,7 +45,7 @@ def maxsize_test(arrays_to_accept: int = 8, arrays_size: int = 10):
         _dict[i] = array
         assert not _dict.is_empty(), "CircularDict should not be empty"
 
-    assert _dict.is_full(), f"CircularDict should be full. It has a size of {_dict.currentsize} bytes and the maximum size is {size_for_keys + size_for_values} bytes"
+    assert _dict.is_full(), f"CircularDict should be full. It has a size of {_dict.current_size} bytes and the maximum size is {size_for_keys + size_for_values} bytes"
 
 
     # Try to add another array that exceeds the maximum size
@@ -56,7 +56,7 @@ def maxsize_test(arrays_to_accept: int = 8, arrays_size: int = 10):
     assert 2 in _dict, f"The item with key 1 should still be in the CircularDict"
 
     assert len(_dict) == arrays_to_accept, f"The CircularDict should have {arrays_to_accept} items"
-    assert _dict.currentsize == (key_size + value_size) * arrays_to_accept, f"The CircularDict should have a size of {(key_size + value_size) * arrays_to_accept} bytes"
+    assert _dict.current_size == (key_size + value_size) * arrays_to_accept, f"The CircularDict should have a size of {(key_size + value_size) * arrays_to_accept} bytes"
 
     assert tuple(_dict.keys()) == tuple(int(val[0]) for val in _dict.values()) == tuple(range(2, arrays_to_accept+2)),\
         f"CircularDict should contain the items {tuple(range(2, arrays_to_accept+2))}"
