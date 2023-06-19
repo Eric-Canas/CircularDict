@@ -1,0 +1,8 @@
+
+.idea/
+
+dist/
+
+circular_dict.egg-info/
+
+*.pyc
