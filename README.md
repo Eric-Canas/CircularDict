@@ -43,7 +43,7 @@ When filling it: {'item1': 'value1', 'item2': 'value2', 'item3': 'value3'}
 After adding an element beyond maxlen: {'item2': 'value2', 'item3': 'value3', 'item4': 'value4'}
 ```
 
-#### Example with maxsize_bytes
+#### Example with `maxsize_bytes`
 You can use `maxsize_bytes` to define the maximum amount of memory that the `dict` can store. It is particularly beneficial when defining **caches**, to prevent **memory overflows**.
 
 ```python
