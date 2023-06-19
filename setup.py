@@ -2,15 +2,14 @@ from setuptools import setup, find_packages
 
 setup(
     name='circular-dict',
-    version='1.0',
+    version='1.1',
     author='Eric-Canas',
     author_email='eric@ericcanas.com',
     url='https://github.com/Eric-Canas/CircularDict',
-    description='CircularDict is a high-performance Python data structure that combines the best of dictionaries and circular buffers. '
-                'It provides a data structure that acts as a dictionary but operates as a circular buffer, efficiently removing '
-                'the oldest item when a predetermined maximum length is exceeded. Ideal for caching large items while minimizing '
-                'memory usage, CircularDict provides a unique solution for developers requiring dictionary-like and '
-                'circular-queue-like operations in a single, efficient data structure.',
+    description='CircularDict is a high-performance Python data structure that blends the functionality of dictionaries and circular buffers. '
+                'Inheriting the usage of traditional dictionaries, it allows you to define constraints on size and memory usage. '
+                'This way, the CircularDict will be always up-to-date with the last N added elements, ensuring that neither the maximum length nor '
+                'the memory usage limit is exceeded. It is ideal for caching large data structures while maintaining control over memory footprint. ',
     long_description=open('README.md', 'r').read(),
     long_description_content_type='text/markdown',
     license='MIT',
@@ -31,7 +30,8 @@ setup(
         'Topic :: Software Development :: Libraries',
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Topic :: Utilities',
-        'Topic :: Scientific/Engineering',
-        'Topic :: System :: Monitoring',
+        'Topic :: System :: Hardware',
+        'Topic :: Software Development :: Testing',
+        'Topic :: Software Development :: Debuggers',
     ],
 )
