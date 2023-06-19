@@ -49,6 +49,7 @@ You can use `maxsize_bytes` to define the maximum amount of memory that the `dic
 ```python
 from circular_dict import CircularDict
 import numpy as np
+import sys
 
 # Initialize a CircularDict with a maximum length of 100KB
 my_buffer = CircularDict(maxsize_bytes=100*1024)
