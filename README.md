@@ -1,2 +1,4 @@
-# CircularQueueDict
-Dictionary that acts as a Circular Queue, allowing to set a maximum length and automatically delete oldest element when inputting a new one. Useful for temporal storage of large elements that could overflow memory.
+# CircularDict
+<img alt="CircularDict" title="CircularDict" src="https://raw.githubusercontent.com/Eric-Canas/CircularDict/main/resources/logo.png" width="20%" align="left"> **CircularDict** is a Python `dictionary` that acts as a **Circular Buffer**. This dictionary maintains a **controlled size**, limited either by a specified **number of items** (maxlen) or **total size in bytes** (maxsize_bytes). Upon reaching the defined limit, **CircularDict** automatically removes the oldest entries, maintaining **memory usage** under control.
+
+Built upon Python's `OrderedDict`, **CircularDict** inherits all **standard dictionary usage** and operations, augmented by the capability of **memory management**. It's particularly useful in scenarios such as **caching**, where limiting **memory consumption** is crucial. The class combines _dictionary_ and _circular-queue_ behaviors, providing an efficient and scalable solution for various use cases.
