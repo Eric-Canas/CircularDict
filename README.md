@@ -13,15 +13,15 @@ pip install circular-dict
 
 ## Usage
 
-Working with **CircularDict** is as simple as using a standard Python `dict`, with additional parameters `maxlen` or `maxsize_bytes` on the initialization to control the buffer size. 
+Working with **CircularDict** is as simple as using a standard Python `dict`, with additional parameters `maxlen` or `maxsize_bytes` on the initialization to control the buffer size. You can use one of them or both.
 ```python
 from circular_dict import CircularDict
 # Initialize a CircularDict with a maximum length of 3 items and a storage limit of 4Mb
 my_dict = CircularDict(maxlen=3, maxsize_bytes=4*1024*1024)
 ```
 
-#### Example with `maxlen`
-You can use `maxlen` to define a maximum amount of items that the dictionary can store. It is useful for defining fixed size buffers.
+### Example with `maxlen`
+You can use `maxlen` to define the maximum amount of items that the dictionary can store. It is useful for defining fixed size buffers.
 
 ```python
 from circular_dict import CircularDict
@@ -48,7 +48,7 @@ When filling it: {'item1': 'value1', 'item2': 'value2', 'item3': 'value3'}
 After adding an element beyond maxlen: {'item2': 'value2', 'item3': 'value3', 'item4': 'value4'}
 ```
 
-#### Example with `maxsize_bytes`
+### Example with `maxsize_bytes`
 You can use `maxsize_bytes` to define the maximum amount of memory that the `dict` can store. It is particularly beneficial when defining **caches**, to prevent **memory overflows**.
 
 ```python
