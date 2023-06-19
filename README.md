@@ -16,7 +16,7 @@ pip install circular-dict
 Working with **CircularDict** is as simple as using a standard Python `dict`, with additional parameters `maxlen` or `maxsize_bytes` on the initialization to control the buffer size. 
 
 #### Example with `maxlen`
-You can use `maxlen` to define a maximum amount of items that the dictionary can store. It will be useful for defining fixed size buffers.
+You can use `maxlen` to define a maximum amount of items that the dictionary can store. It is useful for defining fixed size buffers.
 
 ```python
 from circular_dict import CircularDict
@@ -64,11 +64,14 @@ my_buffer['item3'] = np.ones((8, 1024), dtype=np.int32)
 
 print(f"{len(my_buffer)} Elements {tuple(my_buffer.keys())}. Dict size: {my_buffer.current_size/1024} Kb")
 
+# Create an element of ~160Kb (bigger than the defined maximum storage) to trigger a MemoryError
+too_big_array = np.ones((40, 1024), dtype=np.int32)
 try:
-  # Trying to add an element of ~16Kb (bigger than the defined maximum storage) will trigger a MemoryError
-  my_buffer['item4'] = np.ones((40, 1024), dtype=np.int32)
+  # Try to add it to the dict
+  my_buffer['item4'] = too_big_array
 except MemoryError:
-  print(f"Can not add elements bigger than {my_buffer.maxsize_bytes/1024} Kb. Current elements {tuple(my_buffer.keys())}")
+  print(f"Cannot add an element with {sys.getsizeof(too_big_array)/1024}Kb in a dict with"\
+        f"maxsize_bytes of {my_buffer.maxsize_bytes/1024} Kb. Current elements {tuple(my_buffer.keys())}")
 ```
 
 Output
@@ -76,7 +79,7 @@ Output
 ```bash
 2 Elements ('item1', 'item2'). Dict size: 80.35 Kb
 2 Elements ('item2', 'item3'). Dict size: 72.35 Kb
-Can not add elements bigger than 100.0 Kb. Current elements ('item2', 'item3')
+Cannot add an element with 160.12Kb in a dict with maxsize_bytes of 100.0 Kb. Current elements ('item2', 'item3')
 ```
 
 Please remember that the `maxsize_bytes` parameter considers the **total** memory footprint, including the sizes of _keys_ and _values_. If you try to add an item that exceeds the `maxsize_bytes`, a `MemoryError` will be raised.
