@@ -37,7 +37,7 @@ my_buffer['item3'] = 'value3'
 print(f"When filling it: {circ_dict}")
 
 # Add another item
-circ_dict['item4'] = 'value4'
+my_buffer['item4'] = 'value4'
 
 print(f"After adding an element beyond maxlen: {circ_dict}")
 ```
