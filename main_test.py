@@ -26,6 +26,71 @@ def maxlen_test(maxlen: int = 5, items_to_overflow: int = 3):
 
     assert not any(i in _dict for i in range(0, maxlen-items_to_overflow)), f"CircularDict should not contain the items {tuple(range(0, maxlen-items_to_overflow))}"
 
+    # Check delete and pop
+    del _dict[4]
+    assert 4 not in _dict, "CircularDict should not contain the item 2"
+    assert not _dict.is_full(), "CircularDict should not be full"
+    assert len(_dict) == maxlen - 1, f"CircularDict should have {maxlen - 1} items. It has {len(_dict)} items"
+    _dict[4] = 4
+    assert _dict.is_full(), "CircularDict should be full"
+
+def deletions_test(arrays_to_accept: int = 8, arrays_size: int = 10):
+    # Calculate sizes for keys and values
+    key_size = sys.getsizeof(1)
+    value_size = sys.getsizeof(np.ones(arrays_size, dtype=np.int32))
+    item_size = key_size + value_size
+
+    # Initialize CircularDict with max size
+    _dict = CircularDict(maxsize_bytes=(key_size + value_size) * arrays_to_accept)
+
+    # Fill the dictionary with items (start on one because zero always occupies less space)
+    for i in range(1, arrays_to_accept+1):
+        array = np.array([i] * arrays_size, dtype=np.int32)
+        _dict[i] = array
+
+    assert _dict.is_full(), f"CircularDict should be full. It has a size of {_dict.current_size} bytes and the maximum size is {(_dict.maxsize_bytes)} bytes"
+
+    # Check delete
+    del _dict[arrays_to_accept]
+    assert arrays_to_accept not in _dict, f"CircularDict should not contain the item {arrays_to_accept}"
+    assert not _dict.is_full(), "CircularDict should not be full after deletion"
+    assert len(_dict) == arrays_to_accept - 1, f"CircularDict should have {arrays_to_accept - 1} items. It has {len(_dict)} items"
+    assert _dict.current_size == item_size * (
+                arrays_to_accept - 1), "CircularDict current size should decrease after deletion"
+
+
+    # Add the deleted item back to the dict
+    array = np.array([arrays_to_accept] * arrays_size, dtype=np.int32)
+    _dict[arrays_to_accept] = array
+    assert _dict.is_full(), "CircularDict should be full after adding the deleted item back"
+    assert _dict.current_size == item_size * arrays_to_accept, "CircularDict current size should be back to maximum after adding item back"
+
+    # Check .pop() method
+    popped_item = _dict.pop(arrays_to_accept)
+    assert popped_item.tolist() == [arrays_to_accept] * arrays_size, "Popped item should be the same as the deleted one"
+    assert arrays_to_accept not in _dict, f"CircularDict should not contain the item {arrays_to_accept} after pop"
+    assert not _dict.is_full(), "CircularDict should not be full after pop"
+    assert len(
+        _dict) == arrays_to_accept - 1, f"CircularDict should have {arrays_to_accept - 1} items after pop. It has {len(_dict)} items"
+    assert _dict.current_size == item_size * (
+                arrays_to_accept - 1), "CircularDict current size should decrease after pop"
+
+    # Check .popitem() method
+    key, popped_item = _dict.popitem()
+    assert popped_item.tolist() == [key] * arrays_size, "Popped item should be the same as the deleted one"
+    assert key not in _dict, f"CircularDict should not contain the item {key} after popitem"
+    assert not _dict.is_full(), "CircularDict should not be full after popitem"
+    assert len(
+        _dict) == arrays_to_accept - 2, f"CircularDict should have {arrays_to_accept - 2} items after popitem. It has {len(_dict)} items"
+    assert _dict.current_size == item_size * (
+                arrays_to_accept - 2), "CircularDict current size should decrease after popitem"
+
+    # Check .clear() method
+    _dict.clear()
+    assert len(_dict) == 0, "CircularDict should be empty after clear"
+    assert not _dict.is_full(), "CircularDict should not be full after clear"
+    assert _dict.current_size == 0, "CircularDict current size should be zero after clear"
+
 
 def maxsize_test(arrays_to_accept: int = 8, arrays_size: int = 10):
     # Calculate sizes for keys and values
@@ -68,3 +133,5 @@ if __name__ == '__main__':
     print("maxlen_test passed")
     maxsize_test()
     print("maxsize_test passed")
+    deletions_test()
+    print("deletions_test passed")

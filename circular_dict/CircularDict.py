@@ -64,6 +64,13 @@ class CircularDict(OrderedDict):
 
         return (self.maxlen is not None and len(self) == self.maxlen) or (self.maxsize_bytes is not None and self.current_size == self.maxsize_bytes)
 
+    def clear(self):
+        """
+        Remove all items from the dictionary.
+        """
+        super().clear()
+        self.current_size = 0
+
     def __setitem__(self, key: Any, value: Any):
         """
         Set an item in the dictionary. If the key already exists, it will update the value.
@@ -104,3 +111,4 @@ class CircularDict(OrderedDict):
             value = self[key]
             self.current_size -= sys.getsizeof(key) + sys.getsizeof(value)
             OrderedDict.__delitem__(self, key)
+
