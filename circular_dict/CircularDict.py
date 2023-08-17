@@ -13,7 +13,7 @@ Github: https://github.com/Eric-Canas
 
 import sys
 from collections import OrderedDict
-from typing import Any, Optional
+from typing import Any, Optional, Tuple
 
 class CircularDict(OrderedDict):
     """
@@ -111,4 +111,58 @@ class CircularDict(OrderedDict):
             value = self[key]
             self.current_size -= sys.getsizeof(key) + sys.getsizeof(value)
             OrderedDict.__delitem__(self, key)
+
+    def pop(self, key: Any, default: Optional[Any] = None) -> Any:
+        """
+        Remove specified key and return the corresponding value. Override of the default pop method,
+        adapted to work with independently of the Python version (as Python 3.11 (and possibly later versions)
+        does not call __delitem__ when popping).
+        :param key: Any. The key of the item to pop.
+        :param default: Any. The default value to return if the key is not found.
+        :return: Any. The value associated with the key, or the default value if the key is not found.
+        """
+        # As pop doesn't work as expected with Python 3.11, this is a workaround
+        if key not in self:
+            if default is None:
+                raise KeyError(key)
+            return default
+
+        prev_size = self.current_size
+        element = super().pop(key)
+
+        element_size = sys.getsizeof(key) + sys.getsizeof(element)
+
+        # If size did not change, because __delitem__ was not called (Python 3.11), then we must remove it manually
+        if self.current_size == prev_size:
+            self.current_size -= element_size
+        else:
+            # Otherwise, just assert to make sure everything is working as expected
+            assert self.current_size == prev_size - element_size, f"currentsize must be equal to prev_size - element_size. currentsize={self.current_size}, prev_size={prev_size}, element_size={element_size}"
+
+        return element
+
+    def popitem(self, last: bool = True) -> Tuple[Any, Any]:
+        """
+        Remove and return a (key, value) pair from the dictionary.
+        Pairs are returned in LIFO order if last is true or FIFO order if false.
+        Override of the default popitem method, adapted to work independently of the
+        Python version (as Python 3.11 (and possibly later versions) does not call __delitem__
+        when popitem is used).
+
+        :param last: bool. Return the last item (LIFO) if True, and the first item (FIFO) if False.
+        :return: Tuple[Any, Any]. A key-value pair.
+        """
+
+        prev_size = self.current_size
+        key, element = super().popitem(last=last)
+        element_size = sys.getsizeof(key) + sys.getsizeof(element)
+
+        # If size did not change, because __delitem__ was not called (Python 3.11), then we must remove it manually
+        if self.current_size == prev_size:
+            self.current_size -= element_size
+        else:
+            # Otherwise, just assert to make sure everything is working as expected
+            assert self.current_size == prev_size - element_size, f"currentsize must be equal to prev_size - element_size. currentsize={self.current_size}, prev_size={prev_size}, element_size={element_size}"
+
+        return key, element
 

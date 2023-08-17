@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='circular-dict',
-    version='1.6',
+    version='1.7',
     author='Eric-Canas',
     author_email='eric@ericcanas.com',
     url='https://github.com/Eric-Canas/CircularDict',
