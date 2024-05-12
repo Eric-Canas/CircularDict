@@ -15,6 +15,15 @@ import sys
 from collections import OrderedDict
 from typing import Any, Optional, Tuple
 
+# To make sure it is compatible with PyPy environments (PyPy does not have sys.getsizeof for all types)
+try:
+    sys.getsizeof("Exist Check")
+    getsizeof_available = True
+except TypeError:
+    sys.getsizeof = lambda x: 0
+    getsizeof_available = False
+
+
 class CircularDict(OrderedDict):
     """
     A dictionary that operates as a circular buffer, removing the oldest item when either maxlen or
@@ -34,6 +43,11 @@ class CircularDict(OrderedDict):
         :param kwargs: Keyword arguments passed to OrderedDict.
         """
         assert maxlen is not None or maxsize_bytes is not None, "Either maxlen or maxsize must be set"
+        if not getsizeof_available:
+            assert maxsize_bytes is None, ("sys.getsizeof is not available for all types in this environment. "
+                                           "That's common on, for example PyPy environments."
+                                           "maxsize_bytes cannot be used. Set it to None.")
+
         self.maxlen = maxlen
         self.maxsize_bytes = maxsize_bytes
         self.current_size = 0
