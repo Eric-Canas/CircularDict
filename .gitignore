@@ -3,6 +3,10 @@
 
 dist/
 
+build/
+
 circular_dict.egg-info/
 
 *.pyc
+
+*.env

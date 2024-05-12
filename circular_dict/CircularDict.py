@@ -14,6 +14,7 @@ Github: https://github.com/Eric-Canas
 import sys
 from collections import OrderedDict
 from typing import Any, Optional, Tuple
+from threading import RLock
 
 # To make sure it is compatible with PyPy environments (PyPy does not have sys.getsizeof for all types)
 try:
@@ -51,6 +52,9 @@ class CircularDict(OrderedDict):
         self.maxlen = maxlen
         self.maxsize_bytes = maxsize_bytes
         self.current_size = 0
+
+        self.lock = RLock()
+
         super().__init__(*args, **kwargs)
 
     def is_empty(self) -> bool:
@@ -70,6 +74,7 @@ class CircularDict(OrderedDict):
 
         :return: bool. True if full, False otherwise.
         """
+
         if self.maxsize_bytes is not None:
             assert self.current_size <= self.maxsize_bytes, f"currentsize must be less than or equal to maxsize. currentsize={self.current_size}, maxsize={self.maxsize_bytes}"
 
@@ -82,8 +87,9 @@ class CircularDict(OrderedDict):
         """
         Remove all items from the dictionary.
         """
-        super().clear()
-        self.current_size = 0
+        with self.lock:
+            super().clear()
+            self.current_size = 0
 
     def __setitem__(self, key: Any, value: Any):
         """
@@ -100,20 +106,21 @@ class CircularDict(OrderedDict):
             if item_size > self.maxsize_bytes:
                 raise MemoryError(f"Item size {item_size} is larger than maxsize {self.maxsize_bytes}")
 
-        # Delete the previous item if it exists to update the size accurately
-        if key in self:
-            del self[key]
+        with self.lock:
+            # Delete the previous item if it exists to update the size accurately
+            if key in self:
+                del self[key]
 
-        # Keep removing oldest items until there's enough space
-        while self.maxsize_bytes is not None and self.current_size + item_size > self.maxsize_bytes:
-            self.popitem(last=False)
-        # Keep removing oldest items until there's
-        while self.maxlen is not None and len(self) >= self.maxlen:
-            assert len(self) == self.maxlen, f"len(self) must be equal to self.maxlen. len(self)={len(self)}, self.maxlen={self.maxlen}"
-            self.popitem(last=False)
+            # Keep removing oldest items until there's enough space
+            while self.maxsize_bytes is not None and self.current_size + item_size > self.maxsize_bytes:
+                self.popitem(last=False)
+            # Keep removing oldest items until there's
+            while self.maxlen is not None and len(self) >= self.maxlen:
+                assert len(self) == self.maxlen, f"len(self) must be equal to self.maxlen. len(self)={len(self)}, self.maxlen={self.maxlen}"
+                self.popitem(last=False)
 
-        OrderedDict.__setitem__(self, key, value)
-        self.current_size += item_size  # add size of new item
+            OrderedDict.__setitem__(self, key, value)
+            self.current_size += item_size  # add size of new item
 
     def __delitem__(self, key: Any):
         """
@@ -121,10 +128,11 @@ class CircularDict(OrderedDict):
 
         :param key: Any. The key of the item to delete.
         """
-        if key in self:
-            value = self[key]
-            self.current_size -= sys.getsizeof(key) + sys.getsizeof(value)
-            OrderedDict.__delitem__(self, key)
+        with self.lock:
+            if key in self:
+                value = self[key]
+                self.current_size -= sys.getsizeof(key) + sys.getsizeof(value)
+                OrderedDict.__delitem__(self, key)
 
     def pop(self, key: Any, default: Optional[Any] = None) -> Any:
         """
@@ -135,23 +143,24 @@ class CircularDict(OrderedDict):
         :param default: Any. The default value to return if the key is not found.
         :return: Any. The value associated with the key, or the default value if the key is not found.
         """
-        # As pop doesn't work as expected with Python 3.11, this is a workaround
-        if key not in self:
-            if default is None:
-                raise KeyError(key)
-            return default
+        with self.lock:
+            # As pop doesn't work as expected with Python 3.11, this is a workaround
+            if key not in self:
+                if default is None:
+                    raise KeyError(key)
+                return default
 
-        prev_size = self.current_size
-        element = super().pop(key)
+            prev_size = self.current_size
+            element = super().pop(key)
 
-        element_size = sys.getsizeof(key) + sys.getsizeof(element)
+            element_size = sys.getsizeof(key) + sys.getsizeof(element)
 
-        # If size did not change, because __delitem__ was not called (Python 3.11), then we must remove it manually
-        if self.current_size == prev_size:
-            self.current_size -= element_size
-        else:
-            # Otherwise, just assert to make sure everything is working as expected
-            assert self.current_size == prev_size - element_size, f"currentsize must be equal to prev_size - element_size. currentsize={self.current_size}, prev_size={prev_size}, element_size={element_size}"
+            # If size did not change, because __delitem__ was not called (Python 3.11), then we must remove it manually
+            if self.current_size == prev_size:
+                self.current_size -= element_size
+            else:
+                # Otherwise, just assert to make sure everything is working as expected
+                assert self.current_size == prev_size - element_size, f"currentsize must be equal to prev_size - element_size. currentsize={self.current_size}, prev_size={prev_size}, element_size={element_size}"
 
         return element
 
@@ -167,16 +176,17 @@ class CircularDict(OrderedDict):
         :return: Tuple[Any, Any]. A key-value pair.
         """
 
-        prev_size = self.current_size
-        key, element = super().popitem(last=last)
-        element_size = sys.getsizeof(key) + sys.getsizeof(element)
+        with self.lock:
+            prev_size = self.current_size
+            key, element = super().popitem(last=last)
+            element_size = sys.getsizeof(key) + sys.getsizeof(element)
 
-        # If size did not change, because __delitem__ was not called (Python 3.11), then we must remove it manually
-        if self.current_size == prev_size:
-            self.current_size -= element_size
-        else:
-            # Otherwise, just assert to make sure everything is working as expected
-            assert self.current_size == prev_size - element_size, f"currentsize must be equal to prev_size - element_size. currentsize={self.current_size}, prev_size={prev_size}, element_size={element_size}"
+            # If size did not change, because __delitem__ was not called (Python 3.11), then we must remove it manually
+            if self.current_size == prev_size:
+                self.current_size -= element_size
+            else:
+                # Otherwise, just assert to make sure everything is working as expected
+                assert self.current_size == prev_size - element_size, f"currentsize must be equal to prev_size - element_size. currentsize={self.current_size}, prev_size={prev_size}, element_size={element_size}"
 
         return key, element
 

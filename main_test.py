@@ -1,6 +1,35 @@
 from circular_dict import CircularDict
 import numpy as np
 import sys
+import threading
+
+def thread_function(_dict, start_index, num_operations):
+    for i in range(num_operations):
+        _dict[start_index + i] = start_index + i
+        if (start_index + i) % 2 == 0:  # Arbitrarily delete some entries
+            del _dict[start_index + i]
+
+def concurrency_test():
+    _dict = CircularDict(maxlen=50)
+    threads = []
+    num_threads = 500  # Number of concurrent threads
+    operations_per_thread = 1000
+
+    # Start threads
+    for i in range(num_threads):
+        thread = threading.Thread(target=thread_function, args=(_dict, i * operations_per_thread, operations_per_thread))
+        threads.append(thread)
+
+    for thread in threads:
+        thread.start()
+
+    # Wait for all threads to finish
+    for thread in threads:
+        thread.join()
+
+    # Verification
+    assert len(_dict) <= _dict.maxlen, f"Dictionary exceeded its maximum length: {len(_dict)} > {_dict.maxlen}"
+
 
 def maxlen_test(maxlen: int = 5, items_to_overflow: int = 3):
     _dict = CircularDict(maxlen=maxlen)
@@ -135,3 +164,6 @@ if __name__ == '__main__':
     print("maxsize_test passed")
     deletions_test()
     print("deletions_test passed")
+
+    concurrency_test()
+    print("concurrency_test passed")
