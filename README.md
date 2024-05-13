@@ -88,4 +88,4 @@ Output
 Cannot add an element with 160.12Kb in a dict with maxsize_bytes of 100.0 Kb. Current elements ('item2', 'item3')
 ```
 
-Please remember that the `maxsize_bytes` parameter considers the **total** memory footprint, including the sizes of _keys_ and _values_. If you try to add an item that exceeds the `maxsize_bytes`, a `MemoryError` will be raised.
+Please remember that the `maxsize_bytes` parameter considers the **total** memory footprint, including the sizes of _keys_ and _values_. If you try to add an item that exceeds the `maxsize_bytes`, a `MemoryError` will be raised. In environments like [PyPy](https://www.pypy.org/) where [`sys.getsizeof()` is not available](https://doc.pypy.org/en/latest/cpython_differences.html#miscellaneous) `maxsize_bytes` cannot be used and must be setted to `None`.
